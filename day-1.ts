@@ -2,7 +2,7 @@ const findElfWithMostCalories = (elfsCalories: string): number => {
   const elfsCaloriesTotal = elfsCalories
     .split('\n\n')
     .map((elf) =>
-      elf.split('\n').reduce((prev, acc) => prev + parseInt(acc), 0)
+      elf.split('\n').reduce((acc, curr) => acc + parseInt(curr), 0)
     );
   return Math.max(...elfsCaloriesTotal);
 };
@@ -12,7 +12,7 @@ const findTopThreeElfsWithMostCalories = (elfsCalories: string) => {
   const elfsCaloriesTotal = elfsCalories
     .split('\n\n')
     .map((elf) =>
-      elf.split('\n').reduce((prev, acc) => prev + parseInt(acc), 0)
+      elf.split('\n').reduce((acc, curr) => acc + parseInt(curr), 0)
     );
 
   while (topThreeElfsCaloriesTotal.length !== 3) {
@@ -23,5 +23,5 @@ const findTopThreeElfsWithMostCalories = (elfsCalories: string) => {
     );
   }
 
-  return topThreeElfsCaloriesTotal.reduce((prev, acc) => prev + acc, 0);
+  return topThreeElfsCaloriesTotal.reduce((acc, curr) => acc + curr, 0);
 };
