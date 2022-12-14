@@ -22,9 +22,10 @@ const reformatStacksAsArrays = (stacks: string[]) => {
   );
 };
 
-const doInstructionFirstPart = (
+const doInstruction = (
   stacksArrays: string[][],
-  procedure: string
+  procedure: string,
+  isFirstPartRearrangement: boolean
 ) => {
   let cratesNbToMove: number;
   let stackIndexDepart: number;
@@ -39,36 +40,12 @@ const doInstructionFirstPart = (
     stackIndexArrival = parseInt(procedure[2]) - 1;
   }
 
-  const cratesToMove = stacksArrays[stackIndexDepart]
-    .splice(
-      stacksArrays[stackIndexDepart].length - cratesNbToMove,
-      cratesNbToMove
-    )
-    .reverse();
-  stacksArrays[stackIndexArrival].push(...cratesToMove);
-};
-
-const doInstructionSecondPart = (
-  stacksArrays: string[][],
-  procedure: string
-) => {
-  let cratesNbToMove: number;
-  let stackIndexDepart: number;
-  let stackIndexArrival: number;
-  if (procedure.length > 3) {
-    cratesNbToMove = parseInt(procedure.slice(0, 2));
-    stackIndexDepart = parseInt(procedure[2]) - 1;
-    stackIndexArrival = parseInt(procedure[3]) - 1;
-  } else {
-    cratesNbToMove = parseInt(procedure[0]);
-    stackIndexDepart = parseInt(procedure[1]) - 1;
-    stackIndexArrival = parseInt(procedure[2]) - 1;
-  }
-
-  const cratesToMove = stacksArrays[stackIndexDepart].splice(
+  let cratesToMove = stacksArrays[stackIndexDepart].splice(
     stacksArrays[stackIndexDepart].length - cratesNbToMove,
     cratesNbToMove
   );
+
+  if (isFirstPartRearrangement === true) cratesToMove = cratesToMove.reverse();
   stacksArrays[stackIndexArrival].push(...cratesToMove);
 };
 
@@ -90,8 +67,8 @@ const getCratesThatEndsUpOnTopOfEachStack = (
     .map((instruction) => instruction.replaceAll(/[^\d]/g, ''));
 
   procedures.map((procedure) => {
-    doInstructionFirstPart(stacksArraysFirstPart, procedure);
-    doInstructionSecondPart(stacksArraysSecondPart, procedure);
+    doInstruction(stacksArraysFirstPart, procedure, true);
+    doInstruction(stacksArraysSecondPart, procedure, false);
   });
 
   const twoPartsResult: string[] = [];
