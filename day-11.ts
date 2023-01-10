@@ -83,7 +83,7 @@ const monkeysRound = (monkeyArray: Monkey[]) => {
   });
 };
 
-const getMonkeyBusinnessLevel = (monkeysInput: string) => {
+const getMonkeyBusinnessLevelPartOne = (monkeysInput: string) => {
   const monkeyArray = parseMonkeysInput(monkeysInput);
   let rounds = 1;
 
@@ -91,68 +91,78 @@ const getMonkeyBusinnessLevel = (monkeysInput: string) => {
     monkeysRound(monkeyArray);
     rounds += 1;
   }
+
   const inspectedItemsValues = monkeyArray
     .map((monkey) => monkey.inspectedItems)
     .sort((a, b) => b - a);
   return inspectedItemsValues[0] * inspectedItemsValues[1];
 };
 
-console.log(
-  getMonkeyBusinnessLevel(
-    `Monkey 0:
-  Starting items: 91, 54, 70, 61, 64, 64, 60, 85
-  Operation: new = old * 13
-  Test: divisible by 2
-    If true: throw to monkey 5
-    If false: throw to monkey 2
+const doOperationPartTwo = (monkey: Monkey, itemHold: number) => {
+  let worryLevel: number;
+  if (monkey.monkeyOperation[0] === '*') {
+    if (monkey.monkeyOperation[1] === 'old') {
+      worryLevel = Math.floor(itemHold * itemHold);
+    } else {
+      worryLevel = Math.floor(itemHold * parseInt(monkey.monkeyOperation[1]));
+    }
+  } else {
+    if (monkey.monkeyOperation[1] === 'old') {
+      worryLevel = Math.floor(itemHold + itemHold);
+    } else {
+      worryLevel = Math.floor(itemHold + parseInt(monkey.monkeyOperation[1]));
+    }
+  }
+  return worryLevel;
+};
 
-Monkey 1:
-  Starting items: 82
-  Operation: new = old + 7
-  Test: divisible by 13
-    If true: throw to monkey 4
-    If false: throw to monkey 3
+const monkeyTurnPartTwo = (
+  monkey: Monkey,
+  monkeyArray: Monkey[],
+  divider: number
+) => {
+  return monkey.itemsHolding.filter((itemHold) => {
+    let worryLevel = doOperationPartTwo(monkey, itemHold);
+    worryLevel = worryLevel % divider;
+    if (worryLevel % monkey.monkeyTest === 0) {
+      const monkeyReceiver = monkeyArray.find(
+        (monkeyReceiver) =>
+          monkeyReceiver.monkeyId === monkey.monkeysIdTargets[0]
+      );
+      monkeyReceiver?.itemsHolding.push(worryLevel);
+    } else {
+      const monkeyReceiver = monkeyArray.find(
+        (monkeyReceiver) =>
+          monkeyReceiver.monkeyId === monkey.monkeysIdTargets[1]
+      );
+      monkeyReceiver?.itemsHolding.push(worryLevel);
+    }
+    monkey.inspectedItems += 1;
+    return false;
+  });
+};
 
-Monkey 2:
-  Starting items: 84, 93, 70
-  Operation: new = old + 2
-  Test: divisible by 5
-    If true: throw to monkey 5
-    If false: throw to monkey 1
+const monkeysRoundPartTwo = (monkeyArray: Monkey[], divider: number) => {
+  monkeyArray.forEach((monkey) => {
+    if (monkey.itemsHolding.length > 0) {
+      monkey.itemsHolding = monkeyTurnPartTwo(monkey, monkeyArray, divider);
+    }
+  });
+};
 
-Monkey 3:
-  Starting items: 78, 56, 85, 93
-  Operation: new = old * 2
-  Test: divisible by 3
-    If true: throw to monkey 6
-    If false: throw to monkey 7
+const getMonkeyBusinnessLevelPartTwo = (monkeysInput: string) => {
+  const monkeyArray = parseMonkeysInput(monkeysInput);
+  const divider = monkeyArray
+    .map((monkey) => monkey.monkeyTest)
+    .reduce((acc, curr) => acc * curr, 1);
+  let rounds = 1;
 
-Monkey 4:
-  Starting items: 64, 57, 81, 95, 52, 71, 58
-  Operation: new = old * old
-  Test: divisible by 11
-    If true: throw to monkey 7
-    If false: throw to monkey 3
-
-Monkey 5:
-  Starting items: 58, 71, 96, 58, 68, 90
-  Operation: new = old + 6
-  Test: divisible by 17
-    If true: throw to monkey 4
-    If false: throw to monkey 1
-
-Monkey 6:
-  Starting items: 56, 99, 89, 97, 81
-  Operation: new = old + 1
-  Test: divisible by 7
-    If true: throw to monkey 0
-    If false: throw to monkey 2
-
-Monkey 7:
-  Starting items: 68, 72
-  Operation: new = old + 8
-  Test: divisible by 19
-    If true: throw to monkey 6
-    If false: throw to monkey 0`
-  )
-);
+  while (rounds <= 10000) {
+    monkeysRoundPartTwo(monkeyArray, divider);
+    rounds += 1;
+  }
+  const inspectedItemsValues = monkeyArray
+    .map((monkey) => monkey.inspectedItems)
+    .sort((a, b) => b - a);
+  return inspectedItemsValues[0] * inspectedItemsValues[1];
+};
