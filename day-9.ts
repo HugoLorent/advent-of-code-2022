@@ -1,114 +1,102 @@
-const moveTail = (headCoords: number[], tailCoords: number[]) => {
-  const xDiff = headCoords[0] - tailCoords[0];
-  const yDiff = headCoords[1] - tailCoords[1];
+type Motion = {
+  direction: string;
+  nbMoves: number;
+};
 
-  if (xDiff === 0 && yDiff === 2) {
-    // UP MOVE
-    tailCoords[1] += 1;
-    return;
-  } else if ((xDiff === 1 && yDiff === 2) || (xDiff === 2 && yDiff === 1)) {
-    // RIGHT UP MOVE
-    tailCoords[0] += 1;
-    tailCoords[1] += 1;
-    return;
-  } else if (xDiff === 2 && yDiff === 0) {
-    // RIGHT MOVE
-    tailCoords[0] += 1;
-    return;
-  } else if ((xDiff === 2 && yDiff === -1) || (xDiff === 1 && yDiff === -2)) {
-    // RIGHT DOWN MOVE
-    tailCoords[0] += 1;
-    tailCoords[1] -= 1;
-    return;
-  } else if (xDiff === 0 && yDiff === -2) {
-    // DOWN  MOVE
-    tailCoords[1] -= 1;
-    return;
-  } else if ((xDiff === -1 && yDiff === -2) || (xDiff === -2 && yDiff === -1)) {
-    // LEFT DOWN MOVE
-    tailCoords[0] -= 1;
-    tailCoords[1] -= 1;
-    return;
-  } else if (xDiff === -2 && yDiff === 0) {
-    // LEFT MOVE
-    tailCoords[0] -= 1;
-    return;
-  } else if ((xDiff === -2 && yDiff === 1) || (xDiff === -1 && yDiff === 2)) {
-    // LEFT UP MOVE
-    tailCoords[0] -= 1;
-    tailCoords[1] += 1;
-    return;
+type Point = {
+  x: number;
+  y: number;
+};
+
+const parseInstructionInput = (instructions: string) => {
+  return instructions.split('\n').map((instruction) => {
+    const motion: Motion = {
+      direction: instruction[0],
+      nbMoves: parseInt(instruction.slice(instruction.indexOf(' '))),
+    };
+    return motion;
+  });
+};
+
+const updateTail = (head: Point, tail: Point) => {
+  const distance = Math.max(
+    Math.abs(tail.x - head.x),
+    Math.abs(tail.y - head.y)
+  );
+  if (distance > 1) {
+    const directionX = head.x - tail.x;
+    tail.x += Math.abs(directionX) === 2 ? directionX / 2 : directionX;
+    const directionY = head.y - tail.y;
+    tail.y += Math.abs(directionY) === 2 ? directionY / 2 : directionY;
   }
 };
 
-const verifyTailCoords = (
-  tailCoords: number[],
-  tailCoordsPositions: Set<string>
-) => {
-  const tailCoordsAsString = `${tailCoords[0]}-${tailCoords[1]}`;
-  tailCoordsPositions.add(tailCoordsAsString);
-};
-
-const moveRope = (
-  move: string,
-  headCoords: number[],
-  tailCoords: number[],
-  tailCoordsPositions: Set<string>
-) => {
-  const direction = move[0];
-  let steps = parseInt(move[2]);
-
-  if (direction === 'U') {
-    while (steps > 0) {
-      headCoords[1] += 1;
-      moveTail(headCoords, tailCoords);
-      verifyTailCoords(tailCoords, tailCoordsPositions);
-      steps -= 1;
-    }
-  } else if (direction === 'R') {
-    while (steps > 0) {
-      headCoords[0] += 1;
-      moveTail(headCoords, tailCoords);
-      verifyTailCoords(tailCoords, tailCoordsPositions);
-      steps -= 1;
-    }
-  } else if (direction === 'D') {
-    while (steps > 0) {
-      headCoords[1] -= 1;
-      moveTail(headCoords, tailCoords);
-      verifyTailCoords(tailCoords, tailCoordsPositions);
-      steps -= 1;
-    }
-  } else if (direction === 'L') {
-    while (steps > 0) {
-      headCoords[0] -= 1;
-      moveTail(headCoords, tailCoords);
-      verifyTailCoords(tailCoords, tailCoordsPositions);
-      steps -= 1;
-    }
+const moveHead = (motion: Motion, head: Point) => {
+  switch (motion.direction) {
+    case 'U':
+      head.y += 1;
+      break;
+    case 'R':
+      head.x += 1;
+      break;
+    case 'D':
+      head.y -= 1;
+      break;
+    case 'L':
+      head.x -= 1;
+      break;
+    default:
+      break;
   }
 };
 
-const getPositionTailVisitedAtLeastOnce = (moves: string) => {
-  const tailCoordsPositions: Set<string> = new Set();
-  const headCoords = [0, 0];
-  const tailCoords = [0, 0];
-
-  moves
-    .split('\n')
-    .forEach((move) =>
-      moveRope(move, headCoords, tailCoords, tailCoordsPositions)
-    );
-  return tailCoordsPositions.size;
+const markAsVisited = (
+  x: number,
+  y: number,
+  visitedTailCoordsOnce: Set<string>
+) => {
+  visitedTailCoordsOnce.add(`${x}-${y}`);
 };
 
-console.log(
-  getPositionTailVisitedAtLeastOnce(`R 4
-U 4
-L 3
-D 1
-R 4
-D 1
-L 5
-R 2`)
-);
+const getNbPositionTailRopeVisitedAtLeastOncePartOne = (
+  instructions: string
+) => {
+  const motionsArray = parseInstructionInput(instructions);
+  const head: Point = { x: 0, y: 0 };
+  const tail: Point = { x: 0, y: 0 };
+  const visitedTailCoordsOnce = new Set<string>();
+
+  motionsArray.forEach((motion) => {
+    for (let i = 0; i < motion.nbMoves; i++) {
+      moveHead(motion, head);
+      updateTail(head, tail);
+      markAsVisited(tail.x, tail.y, visitedTailCoordsOnce);
+    }
+  });
+  return visitedTailCoordsOnce.size;
+};
+
+const getNbPositionTailRopeVisitedAtLeastOncePartTwo = (
+  instructions: string
+) => {
+  const motionsArray = parseInstructionInput(instructions);
+  const rope: Point[] = new Array(10).fill(0).map(() => {
+    const newPoint: Point = { x: 0, y: 0 };
+    return newPoint;
+  });
+  const head = rope[0];
+  const visitedTailCoordsOnce = new Set<string>();
+
+  motionsArray.forEach((motion) => {
+    for (let i = 0; i < motion.nbMoves; i++) {
+      moveHead(motion, head);
+      for (let i = 1; i < rope.length; i++) {
+        updateTail(rope[i - 1], rope[i]);
+        if (i === rope.length - 1) {
+          markAsVisited(rope[i].x, rope[i].y, visitedTailCoordsOnce);
+        }
+      }
+    }
+  });
+  return visitedTailCoordsOnce.size;
+};
